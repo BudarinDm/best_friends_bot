@@ -2,15 +2,11 @@ package main
 
 import (
 	"best_friends_bot/internal/config"
+	"best_friends_bot/internal/model"
+	"best_friends_bot/internal/service"
 	"best_friends_bot/pkg/logger"
-	"bytes"
-	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"log"
-	"math/rand"
-	"net/http"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -21,61 +17,59 @@ func main() {
 		logger.Fatalf("error read config: %v", err)
 	}
 
-	bot, err := tgbotapi.NewBotAPI(cfg.Bot.Token)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	srv := service.NewBot(cfg)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates := bot.GetUpdatesChan(u)
+	updates := srv.Bot.GetUpdatesChan(u)
 
 	for update := range updates {
 		if update.Message != nil {
 			message := update.Message.Text
-			isOzon := strings.Contains(strings.ToLower(message), "озон")
 
-			//fmt.Println(isOzon)
-			//isOzon := strings.Contains(message, "озон")
-
-			if isOzon {
-				// If we got a message
-				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-				randSource := rand.NewSource(time.Now().UnixNano())
-				randObj := rand.New(randSource)
-				randVasya := randObj.Intn(3)
-
-				url := fmt.Sprintf("https://s3.timeweb.com/3c0377c1-core/vasya/vasya%d.jpeg", randVasya)
-				res, err := http.Get(url)
+			if isVasya(message) {
+				err = srv.SendPhotoIsWord(update, model.PhotoVasyaName, 3)
 				if err != nil {
-					log.Fatal(err)
+					logger.Errorf("error SendPhotoIsWord: %v", err)
+					continue
 				}
+			}
 
-				buf := new(bytes.Buffer)
-				buf.ReadFrom(res.Body)
-
-				file := tgbotapi.FileBytes{
-					Name:  "",
-					Bytes: buf.Bytes(),
-				}
-				photo := tgbotapi.NewPhoto(update.Message.Chat.ID, file)
-				//msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-				photo.ReplyToMessageID = update.Message.MessageID
-
-				res.Body.Close()
-				_, err = bot.Send(photo)
+			if isOzon(message) {
+				err = srv.SendPhotoIsWord(update, model.PhotoOzonName, 8)
 				if err != nil {
-					fmt.Println(err)
-					return
+					logger.Errorf("error SendPhotoIsWord: %v", err)
+					continue
 				}
 			}
 
 		}
 	}
+}
+
+func isVasya(message string) bool {
+	if strings.Contains(strings.ToLower(message), "вася") {
+		return true
+	}
+	if strings.Contains(strings.ToLower(message), "васек") {
+		return true
+	}
+	if strings.Contains(strings.ToLower(message), "василий") {
+		return true
+	}
+	return false
+}
+
+func isOzon(message string) bool {
+	if strings.Contains(strings.ToLower(message), "озон") {
+		return true
+	}
+	if strings.Contains(strings.ToLower(message), "работа") {
+		return true
+	}
+	if strings.Contains(strings.ToLower(message), "ozon") {
+		return true
+	}
+	return false
 }
