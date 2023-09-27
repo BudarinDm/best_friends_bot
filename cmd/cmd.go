@@ -15,7 +15,6 @@ import (
 func main() {
 	logger.Init()
 
-	//
 	cfg, err := config.ReadConfig()
 	if err != nil {
 		logger.Fatalf("error read config: %v", err)
