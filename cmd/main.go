@@ -3,11 +3,14 @@ package main
 import (
 	"best_friends_bot/internal/config"
 	"best_friends_bot/pkg/logger"
+	"bytes"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
-	"regexp"
+	"math/rand"
+	"net/http"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -35,24 +38,38 @@ func main() {
 	for update := range updates {
 		if update.Message != nil {
 			message := update.Message.Text
-			isOzon := strings.Contains(strings.ToLower(message), "озон Васян")
+			isOzon := strings.Contains(strings.ToLower(message), "озон")
 
-			fmt.Println(isOzon)
+			//fmt.Println(isOzon)
 			//isOzon := strings.Contains(message, "озон")
 
 			if isOzon {
 				// If we got a message
 				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-				//randSource := rand.NewSource(time.Now().UnixNano())
-				//randObj := rand.New(randSource)
-				//randVasya := randObj.Intn(3)
+				randSource := rand.NewSource(time.Now().UnixNano())
+				randObj := rand.New(randSource)
+				randVasya := randObj.Intn(3)
 
-				//photo := tgbotapi.NewPhoto(update.Message.Chat.ID, tgbotapi.FilePath(fmt.Sprintf("img/vasya%d.jpeg", randVasya)))
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-				msg.ReplyToMessageID = update.Message.MessageID
+				url := fmt.Sprintf("https://s3.timeweb.com/3c0377c1-core/vasya/vasya%d.jpeg", randVasya)
+				res, err := http.Get(url)
+				if err != nil {
+					log.Fatal(err)
+				}
 
-				_, err := bot.Send(msg)
+				buf := new(bytes.Buffer)
+				buf.ReadFrom(res.Body)
+
+				file := tgbotapi.FileBytes{
+					Name:  "",
+					Bytes: buf.Bytes(),
+				}
+				photo := tgbotapi.NewPhoto(update.Message.Chat.ID, file)
+				//msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+				photo.ReplyToMessageID = update.Message.MessageID
+
+				res.Body.Close()
+				_, err = bot.Send(photo)
 				if err != nil {
 					fmt.Println(err)
 					return
@@ -61,8 +78,4 @@ func main() {
 
 		}
 	}
-}
-
-func createWordRegex(word string) *regexp.Regexp {
-	return regexp.MustCompile(`\b` + regexp.QuoteMeta(word) + `\b`)
 }
