@@ -6,10 +6,8 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"log"
-	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -37,7 +35,7 @@ func main() {
 	for update := range updates {
 		if update.Message != nil {
 			message := update.Message.Text
-			isOzon := strings.Contains(strings.ToLower(message), "озон")
+			isOzon := strings.Contains(strings.ToLower(message), "озон Васян")
 
 			fmt.Println(isOzon)
 			//isOzon := strings.Contains(message, "озон")
@@ -46,15 +44,15 @@ func main() {
 				// If we got a message
 				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-				randSource := rand.NewSource(time.Now().UnixNano())
-				randObj := rand.New(randSource)
-				randVasya := randObj.Intn(3)
+				//randSource := rand.NewSource(time.Now().UnixNano())
+				//randObj := rand.New(randSource)
+				//randVasya := randObj.Intn(3)
 
-				photo := tgbotapi.NewPhoto(update.Message.Chat.ID, tgbotapi.FilePath(fmt.Sprintf("img/vasya%d.jpeg", randVasya)))
-				//msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-				photo.ReplyToMessageID = update.Message.MessageID
+				//photo := tgbotapi.NewPhoto(update.Message.Chat.ID, tgbotapi.FilePath(fmt.Sprintf("img/vasya%d.jpeg", randVasya)))
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+				msg.ReplyToMessageID = update.Message.MessageID
 
-				_, err := bot.Send(photo)
+				_, err := bot.Send(msg)
 				if err != nil {
 					fmt.Println(err)
 					return
