@@ -1,6 +1,5 @@
 package model
 
 const (
-	PhotoOzonName  = "ozon"
-	PhotoVasyaName = "vasya"
+	MessageInfoDr = "1. /dr- вывести все др\n2. /dr next- вывести следующий др"
 )

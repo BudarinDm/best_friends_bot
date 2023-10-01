@@ -10,6 +10,7 @@ import (
 
 type Repo struct {
 	Message
+	User
 	DB *pgxpool.Pool
 }
 
@@ -21,6 +22,7 @@ func NewRepo(cfg *config.DBConfig) (*Repo, error) {
 
 	return &Repo{
 		Message: NewMessage(db),
+		User:    NewUser(db),
 		DB:      db,
 	}, nil
 }

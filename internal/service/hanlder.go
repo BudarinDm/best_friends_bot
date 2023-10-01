@@ -18,9 +18,18 @@ func (a *App) startConsumers(ctx context.Context) {
 		if update.Message != nil {
 			logger.Infof("userName- %s , userID- %d , message- %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
+			if update.Message.IsCommand() {
+				err := a.commandHandler(ctx, update)
+				if err != nil {
+					logger.Errorf("commandHandler: %s", err.Error())
+					continue
+				}
+				continue
+			}
+
 			err := a.messageByTrigger(ctx, update)
 			if err != nil {
-				logger.Errorf("updateChan: %s", err.Error())
+				logger.Errorf("messageByTrigger: %s", err.Error())
 				continue
 			}
 		}
@@ -41,5 +50,32 @@ func (a *App) messageByTrigger(ctx context.Context, update tgbotapi.Update) erro
 			}
 		}
 	}
+	return nil
+}
+
+func (a *App) commandHandler(ctx context.Context, update tgbotapi.Update) error {
+	command := update.Message.Command()
+
+	if strings.ToLower(command) == "dr" {
+		arg := update.Message.CommandArguments()
+		switch arg {
+		case "":
+			err := a.logic.SendDRCommand(ctx, update)
+			if err != nil {
+				return fmt.Errorf("error SendDRCommand: %s", err.Error())
+			}
+		case "next":
+			err := a.logic.SendDRNextCommand(ctx, update)
+			if err != nil {
+				return fmt.Errorf("error SendDRNextCommand: %s", err.Error())
+			}
+		default:
+			err := a.logic.SendBadRequest(ctx, update, command)
+			if err != nil {
+				return fmt.Errorf("error SendBadRequest: %s", err.Error())
+			}
+		}
+	}
+
 	return nil
 }
