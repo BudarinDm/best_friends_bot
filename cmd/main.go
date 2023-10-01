@@ -2,11 +2,12 @@ package main
 
 import (
 	"best_friends_bot/internal/config"
-	"best_friends_bot/internal/model"
+	"best_friends_bot/internal/logic"
+	db "best_friends_bot/internal/repository"
 	"best_friends_bot/internal/service"
 	"best_friends_bot/pkg/logger"
+	"github.com/gin-gonic/gin"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"strings"
 )
 
 func main() {
@@ -17,59 +18,25 @@ func main() {
 		logger.Fatalf("error read config: %v", err)
 	}
 
-	srv := service.NewBot(cfg)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := srv.Bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message != nil {
-			message := update.Message.Text
-
-			if isVasya(message) {
-				err = srv.SendPhotoIsWord(update, model.PhotoVasyaName, 3)
-				if err != nil {
-					logger.Errorf("error SendPhotoIsWord: %v", err)
-					continue
-				}
-			}
-
-			if isOzon(message) {
-				err = srv.SendPhotoIsWord(update, model.PhotoOzonName, 8)
-				if err != nil {
-					logger.Errorf("error SendPhotoIsWord: %v", err)
-					continue
-				}
-			}
-
-		}
+	bot, err := tgbotapi.NewBotAPI(cfg.Bot.Token)
+	if err != nil {
+		logger.Fatalf("error bot create %s", err.Error())
 	}
-}
 
-func isVasya(message string) bool {
-	if strings.Contains(strings.ToLower(message), "вася") {
-		return true
+	repo, err := db.NewRepo(&cfg.DB)
+	if err != nil {
+		logger.Fatalf("Failed to initialize DB: %s", err)
 	}
-	if strings.Contains(strings.ToLower(message), "васек") {
-		return true
-	}
-	if strings.Contains(strings.ToLower(message), "василий") {
-		return true
-	}
-	return false
-}
+	defer repo.Close()
 
-func isOzon(message string) bool {
-	if strings.Contains(strings.ToLower(message), "озон") {
-		return true
+	lgc := logic.NewLogic(cfg, repo, bot)
+
+	router := gin.Default()
+	srv := service.NewApp(cfg, lgc, router, bot) // service использует logic для обработки событий
+
+	go srv.StartServer(cfg.App.Port)
+
+	if err = srv.Start(); err != nil {
+		logger.Fatalf("Ошибка при работе сервиса: %s", err)
 	}
-	if strings.Contains(strings.ToLower(message), "работа") {
-		return true
-	}
-	if strings.Contains(strings.ToLower(message), "ozon") {
-		return true
-	}
-	return false
 }

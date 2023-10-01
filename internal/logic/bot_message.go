@@ -1,7 +1,8 @@
-package service
+package logic
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/rs/zerolog/log"
@@ -10,7 +11,29 @@ import (
 	"time"
 )
 
-func (s Bot) SendPhotoIsWord(update tgbotapi.Update, photoName string, countPhoto int) error {
+func (l Logic) SendMessageIsWord(ctx context.Context, update tgbotapi.Update, trigger string) error {
+	messages, err := l.repo.GetMessageByTrigger(ctx, trigger)
+	if err != nil {
+		return fmt.Errorf("error GetMessageByTrigger: %s", err.Error())
+	}
+
+	randSource := rand.NewSource(time.Now().UnixNano())
+	randObj := rand.New(randSource)
+	randIndex := randObj.Intn(len(messages))
+	text := messages[randIndex]
+
+	newMsg := tgbotapi.NewMessage(update.Message.Chat.ID, text.Message)
+	newMsg.ReplyToMessageID = update.Message.MessageID
+
+	_, err = l.bot.Send(newMsg)
+	if err != nil {
+		return fmt.Errorf("error bot.Send(msg): %s", err.Error())
+	}
+
+	return nil
+}
+
+func (l Logic) SendPhotoIsWord(update tgbotapi.Update, photoName string, countPhoto int) error {
 	randSource := rand.NewSource(time.Now().UnixNano())
 	randObj := rand.New(randSource)
 	randVasya := randObj.Intn(countPhoto)
@@ -42,7 +65,7 @@ func (s Bot) SendPhotoIsWord(update tgbotapi.Update, photoName string, countPhot
 		return fmt.Errorf("error res.Body.Close() %s", update.Message.From.UserName)
 	}
 
-	_, err = s.Bot.Send(photo)
+	_, err = l.bot.Send(photo)
 	if err != nil {
 		return fmt.Errorf("error bot.Send(photo) %s", update.Message.From.UserName)
 	}
