@@ -16,7 +16,7 @@ func (a *App) startConsumers(ctx context.Context) {
 
 	for update := range updates {
 		if update.Message != nil {
-			logger.Infof("userName- %s , userID- %d , message- %s, data- %v", update.Message.From.UserName, update.Message.From.ID, update.Message.Text, update.Message.From)
+			logger.Infof("userName- %s , userID- %d , message- %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			err := a.messageByTrigger(ctx, update)
 			if err != nil {

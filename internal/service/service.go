@@ -37,11 +37,11 @@ func NewApp(config *config.Config, logic *logic.Logic, router *gin.Engine, bot *
 	}
 }
 
-func (c *App) Start() error {
+func (a *App) Start() error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan bool, 1)
-	go c.startConsumers(context.Background())
+	go a.startConsumers(context.Background())
 	go func() {
 		sig := <-sigs
 		logger.Infof("sig : %s", sig)
@@ -53,8 +53,8 @@ func (c *App) Start() error {
 	return nil
 }
 
-func (c *App) StartServer(port string) {
-	c.router.Use(func(c *gin.Context) {
+func (a *App) StartServer(port string) {
+	a.router.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, ResponseType, accept, origin, Cache-Control, X-Requested-With")
@@ -69,7 +69,7 @@ func (c *App) StartServer(port string) {
 
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%s", port),
-		Handler:        c.router,
+		Handler:        a.router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
