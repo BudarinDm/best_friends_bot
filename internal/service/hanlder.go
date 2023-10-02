@@ -16,7 +16,8 @@ func (a *App) startConsumers(ctx context.Context) {
 
 	for update := range updates {
 		if update.Message != nil {
-			logger.Infof("userName- %s , userID- %d , message- %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
+			//if update.Message.Chat.ID == 3 {}
+			logger.Infof("%d: userName- %s , userID- %d , message- %s", update.Message.Chat.ID, update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			if update.Message.IsCommand() {
 				err := a.commandHandler(ctx, update)
