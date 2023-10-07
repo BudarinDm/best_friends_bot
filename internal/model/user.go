@@ -21,3 +21,8 @@ var BDText = map[int64]string{
 	11: "Ноября",
 	12: "Декабря",
 }
+
+type Admin struct {
+	TgUserId int64
+	Command  bool
+}

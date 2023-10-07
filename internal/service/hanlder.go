@@ -16,7 +16,6 @@ func (a *App) startConsumers(ctx context.Context) {
 
 	for update := range updates {
 		if update.Message != nil {
-			//if update.Message.Chat.ID == 3 {}
 			logger.Infof("%d: userName- %s , userID- %d , message- %s", update.Message.Chat.ID, update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			if update.Message.IsCommand() {
@@ -43,12 +42,24 @@ func (a *App) messageByTrigger(ctx context.Context, update tgbotapi.Update) erro
 		return fmt.Errorf("error SendPhotoIsWord: %s", err.Error())
 	}
 
+	if strings.Contains(strings.ToLower(update.Message.Text), "контрнаступ") ||
+		strings.Contains(strings.ToLower(update.Message.Text), "контрнахрюк") ||
+		strings.Contains(strings.ToLower(update.Message.Text), "нахрюк") ||
+		strings.Contains(strings.ToLower(update.Message.Text), "ебейший") {
+		err = a.logic.SendPhotoIsWord(update, "img/contr.jpg")
+		if err != nil {
+			return fmt.Errorf("error SendMessageIsWord: %s", err.Error())
+		}
+		return nil
+	}
+
 	for _, t := range triggers {
 		if strings.Contains(strings.ToLower(update.Message.Text), t.Trigger) {
 			err = a.logic.SendMessageIsWord(ctx, update, t.Trigger)
 			if err != nil {
 				return fmt.Errorf("error SendMessageIsWord: %s", err.Error())
 			}
+			return nil
 		}
 	}
 	return nil
@@ -77,6 +88,16 @@ func (a *App) commandHandler(ctx context.Context, update tgbotapi.Update) error 
 			}
 		}
 	}
+
+	//if strings.ToLower(command) == "admin" {
+	//	access, err := a.adminCommandChecker(ctx, update.Message.From.ID)
+	//	if err != nil {
+	//		return fmt.Errorf("error adminCommandChecker: %s", err.Error())
+	//	}
+	//	if !access {
+	//		return nil
+	//	}
+	//}
 
 	return nil
 }

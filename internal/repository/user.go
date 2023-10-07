@@ -12,6 +12,7 @@ import (
 type User interface {
 	GetBDDates(ctx context.Context) ([]model.UserBirthday, error)
 	GetBDDateNext(ctx context.Context, t time.Time) (model.UserBirthday, error)
+	GetAdmin(ctx context.Context, id int64) (model.Admin, error)
 }
 
 type UserRepo struct {
@@ -72,6 +73,25 @@ limit 1
 			return model.UserBirthday{}, fmt.Errorf("error sql query: %w", err)
 		}
 		break
+	}
+
+	return data, nil
+}
+
+func (r *UserRepo) GetAdmin(ctx context.Context, id int64) (model.Admin, error) {
+	query := `
+select u.tg_id , a.command from admin a
+join public.user u on a.user_id = u.id
+where u.tg_id = $1
+`
+
+	var data model.Admin
+	err := r.db.QueryRow(ctx, query, id).Scan(&data.TgUserId, &data.Command)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.Admin{}, nil
+		}
+		return model.Admin{}, fmt.Errorf("error sql query: %w", err)
 	}
 
 	return data, nil
