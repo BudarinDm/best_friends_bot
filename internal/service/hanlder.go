@@ -26,8 +26,8 @@ func (a *App) startConsumers(ctx context.Context) {
 						continue
 					}
 				}
-				if strings.Contains(strings.ToLower(update.Message.Text), "нет я") {
-					err := a.logic.SendMessage(ctx, update, "Я тут главный!")
+				if strings.Contains(strings.ToLower(update.Message.Text), "фейк") {
+					err := a.logic.SendMessage(ctx, update, "ты фейк")
 					if err != nil {
 						logger.Errorf("messageByTrigger: %s", err.Error())
 						continue
