@@ -22,14 +22,21 @@ func (a *App) startConsumers(ctx context.Context) {
 				if strings.Contains(strings.ToLower(update.Message.Text), "бот") {
 					err := a.logic.SendMessage(ctx, update, "Я тут главный!")
 					if err != nil {
-						logger.Errorf("messageByTrigger: %s", err.Error())
+						logger.Errorf("SendMessage: %s", err.Error())
 						continue
 					}
 				}
 				if strings.Contains(strings.ToLower(update.Message.Text), "фейк") {
 					err := a.logic.SendMessage(ctx, update, "ты фейк")
 					if err != nil {
-						logger.Errorf("messageByTrigger: %s", err.Error())
+						logger.Errorf("SendMessage: %s", err.Error())
+						continue
+					}
+				}
+				if strings.Contains(strings.ToLower(update.Message.Text), "тупой") {
+					err := a.logic.SendMessage(ctx, update, "а сам то")
+					if err != nil {
+						logger.Errorf("SendMessage: %s", err.Error())
 						continue
 					}
 				}
