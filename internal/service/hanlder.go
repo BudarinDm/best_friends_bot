@@ -19,6 +19,20 @@ func (a *App) startConsumers(ctx context.Context) {
 			logger.Infof("%d: userName- %s , userID- %d , message- %s", update.Message.Chat.ID, update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			if update.Message.From.ID == 1497706118 {
+				if strings.Contains(strings.ToLower(update.Message.Text), "бот") {
+					err := a.logic.SendMessage(ctx, update, "Я тут главный!")
+					if err != nil {
+						logger.Errorf("messageByTrigger: %s", err.Error())
+						continue
+					}
+				}
+				if strings.Contains(strings.ToLower(update.Message.Text), "нет я") {
+					err := a.logic.SendMessage(ctx, update, "Я тут главный!")
+					if err != nil {
+						logger.Errorf("messageByTrigger: %s", err.Error())
+						continue
+					}
+				}
 				continue
 			}
 

@@ -67,6 +67,19 @@ func (l Logic) SendDRCommand(ctx context.Context, update tgbotapi.Update) error 
 	return nil
 }
 
+func (l Logic) SendMessage(ctx context.Context, update tgbotapi.Update, message string) error {
+
+	newMsg := tgbotapi.NewMessage(update.Message.Chat.ID, message)
+	newMsg.ReplyToMessageID = update.Message.MessageID
+
+	_, err := l.bot.Send(newMsg)
+	if err != nil {
+		return fmt.Errorf("error bot.Send(msg): %s", err.Error())
+	}
+
+	return nil
+}
+
 func (l Logic) SendMessageIsWord(ctx context.Context, update tgbotapi.Update, trigger string) error {
 	messages, err := l.repo.GetMessageByTrigger(ctx, trigger)
 	if err != nil {
