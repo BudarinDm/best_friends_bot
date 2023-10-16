@@ -18,6 +18,10 @@ func (a *App) startConsumers(ctx context.Context) {
 		if update.Message != nil {
 			logger.Infof("%d: userName- %s , userID- %d , message- %s", update.Message.Chat.ID, update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
+			if update.Message.From.ID == 1497706118 {
+				continue
+			}
+
 			if update.Message.IsCommand() {
 				err := a.commandHandler(ctx, update)
 				if err != nil {
